@@ -1,0 +1,19 @@
+# ─── Dependencies
+node_modules/
+
+# ─── Environment & Secrets
+.env
+
+# ─── Backups
+backups/
+
+# ─── Dev Notes
+dev-notes/
+
+# ─── OS & Editor Noise 
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+.vscode/
+.idea/

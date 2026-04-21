@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Access Denied — LeadFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: linear-gradient(160deg, #0f1117 0%, #161926 40%, #1a1f35 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Backdrop pulse */
+    .backdrop {
+      position: fixed; inset: 0;
+      background: radial-gradient(circle at 50% 40%, rgba(248,113,113,0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* Popup card */
+    .popup {
+      position: relative;
+      background: rgba(24, 26, 36, 0.9);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(248,113,113,0.2);
+      border-radius: 16px;
+      padding: 48px 40px;
+      max-width: 420px; width: 100%;
+      text-align: center;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.4), 0 0 80px rgba(248,113,113,0.06);
+      animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.9) translateY(20px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* Shield icon */
+    .icon-wrap {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: rgba(248,113,113,0.1);
+      border: 1px solid rgba(248,113,113,0.2);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(248,113,113,0.15); }
+      50% { box-shadow: 0 0 0 12px rgba(248,113,113,0); }
+    }
+
+    .icon-wrap svg { color: #f87171; }
+
+    h1 {
+      font-size: 22px; font-weight: 700;
+      color: #f87171;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 14px; color: #a0a4b8;
+      margin-bottom: 28px; line-height: 1.6;
+    }
+
+    .discord-tag {
+      display: inline-block;
+      padding: 6px 14px;
+      background: rgba(30, 32, 48, 0.8);
+      border: 1px solid #2b2f3e;
+      border-radius: 8px;
+      font-size: 13px; color: #6b7084;
+      margin-bottom: 28px;
+    }
+
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px;
+      background: transparent;
+      border: 1px solid #2b2f3e;
+      border-radius: 8px;
+      color: #a0a4b8;
+      font-size: 14px; font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .back-btn:hover {
+      border-color: #818cf8; color: #eaecf0;
+    }
+
+    .footer-note {
+      margin-top: 20px;
+      font-size: 11px; color: #4a4e63;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="backdrop"></div>
+
+  <div class="popup">
+    <div class="icon-wrap">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+    </div>
+
+    <h1>Unauthorized Access</h1>
+    <p class="subtitle">
+      Your Discord account is not authorized to access LeadFlow.<br>
+      This incident has been logged.
+    </p>
+
+    <div class="discord-tag">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -2px; margin-right: 4px;">
+        <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
+      </svg>
+      Account not whitelisted
+    </div>
+
+    <br>
+    <a href="/" class="back-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"/>
+        <polyline points="12 19 5 12 12 5"/>
+      </svg>
+      Back to Login
+    </a>
+
+    <div class="footer-note">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      This attempt has been recorded
+    </div>
+  </div>
+
+</body>
+</html>
