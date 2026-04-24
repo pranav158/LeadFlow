@@ -148,6 +148,10 @@ app.use('/api/notes', (req, res, next) => {
   if (req.method === 'POST') return apiWriteLimiter(req, res, next);
   next();
 }, require('./routes/notes'));
+app.use('/api/categories', (req, res, next) => {
+  if (['POST','PUT','DELETE'].includes(req.method)) return apiWriteLimiter(req, res, next);
+  next();
+}, require('./routes/categories'));
 app.use('/api/logs', require('./routes/logs'));
 
 // Manual backup trigger (rate limited to 2/min)

@@ -10,7 +10,7 @@ router.use(ensureAuth);
 
 /**
  * GET /api/leads
- * Query params: ?status=active|blacklisted|accepted&search=query
+ * Query params: ?status=active|blacklisted|accepted&search=query&page=1&limit=20&category=id|uncategorized
  */
 router.get('/', async (req, res) => {
   try {
@@ -31,11 +31,39 @@ router.get('/', async (req, res) => {
       }
     }
 
-    const leads = await Lead.find(filter)
-      .populate('createdBy', 'username avatar discordId')
-      .sort({ createdAt: -1 });
+    // Category filter
+    if (req.query.category) {
+      if (req.query.category === 'uncategorized') {
+        filter.category = null;
+      } else {
+        filter.category = req.query.category;
+      }
+    }
 
-    res.json(leads);
+    // Pagination
+    const page  = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const skip  = (page - 1) * limit;
+
+    const [leads, total] = await Promise.all([
+      Lead.find(filter)
+        .populate('createdBy', 'username avatar discordId')
+        .populate('category', 'name color')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Lead.countDocuments(filter)
+    ]);
+
+    res.json({
+      leads,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
   } catch (err) {
     console.error('Get leads error:', err);
     res.status(500).json({ error: 'Failed to fetch leads' });
@@ -48,7 +76,8 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const lead = await Lead.findById(req.params.id)
-      .populate('createdBy', 'username avatar discordId');
+      .populate('createdBy', 'username avatar discordId')
+      .populate('category', 'name color');
 
     if (!lead) {
       return res.status(404).json({ error: 'Lead not found' });
@@ -63,11 +92,11 @@ router.get('/:id', async (req, res) => {
 
 /**
  * POST /api/leads
- * Body: { companyName, email, website, address, country }
+ * Body: { companyName, email, website, address, country, category }
  */
 router.post('/', async (req, res) => {
   try {
-    const { companyName, email, website, address, country } = req.body;
+    const { companyName, email, website, address, country, category } = req.body;
 
     if (!companyName || !email) {
       return res.status(400).json({ error: 'Company name and email are required' });
@@ -84,6 +113,7 @@ router.post('/', async (req, res) => {
       website: website || '',
       address: address || '',
       country: country || '',
+      category: category || null,
       createdBy: req.session.user._id
     });
 
@@ -92,10 +122,13 @@ router.post('/', async (req, res) => {
       action: 'lead_created',
       performedBy: req.session.user._id,
       targetLead: lead._id,
-      details: { companyName, email, website, address, country }
+      details: { companyName, email, website, address, country, category: category || null }
     });
 
-    const populated = await lead.populate('createdBy', 'username avatar discordId');
+    const populated = await lead.populate([
+      { path: 'createdBy', select: 'username avatar discordId' },
+      { path: 'category', select: 'name color' }
+    ]);
     res.status(201).json(populated);
   } catch (err) {
     console.error('Create lead error:', err);
@@ -105,7 +138,7 @@ router.post('/', async (req, res) => {
 
 /**
  * PUT /api/leads/:id
- * Body: { companyName, email, website, address, country }
+ * Body: { companyName, email, website, address, country, category }
  */
 router.put('/:id', async (req, res) => {
   try {
@@ -115,7 +148,7 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Lead not found' });
     }
 
-    const { companyName, email, website, address, country } = req.body;
+    const { companyName, email, website, address, country, category } = req.body;
     const changes = [];
 
     // Track what changed
@@ -139,6 +172,14 @@ router.put('/:id', async (req, res) => {
       changes.push({ field: 'country', oldValue: lead.country, newValue: country });
       lead.country = country;
     }
+    if (category !== undefined) {
+      const newCat = category || null;
+      const oldCat = lead.category ? lead.category.toString() : null;
+      if (newCat !== oldCat) {
+        changes.push({ field: 'category', oldValue: oldCat, newValue: newCat });
+        lead.category = newCat;
+      }
+    }
 
     if (changes.length === 0) {
       return res.json(lead);
@@ -154,7 +195,10 @@ router.put('/:id', async (req, res) => {
       details: { companyName: lead.companyName, changes }
     });
 
-    const populated = await lead.populate('createdBy', 'username avatar discordId');
+    const populated = await lead.populate([
+      { path: 'createdBy', select: 'username avatar discordId' },
+      { path: 'category', select: 'name color' }
+    ]);
     res.json(populated);
   } catch (err) {
     console.error('Update lead error:', err);
@@ -197,11 +241,64 @@ router.patch('/:id/status', async (req, res) => {
       details: { companyName: lead.companyName, oldStatus, newStatus: status }
     });
 
-    const populated = await lead.populate('createdBy', 'username avatar discordId');
+    const populated = await lead.populate([
+      { path: 'createdBy', select: 'username avatar discordId' },
+      { path: 'category', select: 'name color' }
+    ]);
     res.json(populated);
   } catch (err) {
     console.error('Update status error:', err);
     res.status(500).json({ error: 'Failed to update status' });
+  }
+});
+
+/**
+ * PATCH /api/leads/:id/category
+ * Body: { category: 'categoryId' | null }
+ * Used for drag-and-drop category reassignment
+ */
+router.patch('/:id/category', async (req, res) => {
+  try {
+    const { category } = req.body;
+    const lead = await Lead.findById(req.params.id);
+
+    if (!lead) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+
+    const oldCategory = lead.category ? lead.category.toString() : null;
+    const newCategory = category || null;
+
+    if (oldCategory === newCategory) {
+      const populated = await lead.populate([
+        { path: 'createdBy', select: 'username avatar discordId' },
+        { path: 'category', select: 'name color' }
+      ]);
+      return res.json(populated);
+    }
+
+    lead.category = newCategory;
+    await lead.save();
+
+    // Audit log
+    await Log.create({
+      action: 'lead_edited',
+      performedBy: req.session.user._id,
+      targetLead: lead._id,
+      details: {
+        companyName: lead.companyName,
+        changes: [{ field: 'category', oldValue: oldCategory, newValue: newCategory }]
+      }
+    });
+
+    const populated = await lead.populate([
+      { path: 'createdBy', select: 'username avatar discordId' },
+      { path: 'category', select: 'name color' }
+    ]);
+    res.json(populated);
+  } catch (err) {
+    console.error('Update category error:', err);
+    res.status(500).json({ error: 'Failed to update category' });
   }
 });
 
@@ -223,6 +320,7 @@ router.delete('/:id', async (req, res) => {
       website: lead.website,
       address: lead.address,
       country: lead.country,
+      category: lead.category,
       status: lead.status,
       createdAt: lead.createdAt
     };

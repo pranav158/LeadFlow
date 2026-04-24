@@ -6,6 +6,7 @@ const leadSchema = new mongoose.Schema({
   website:     { type: String, default: '', trim: true },
   address:     { type: String, default: '', trim: true },
   country:     { type: String, default: '', trim: true },
+  category:    { type: mongoose.Schema.Types.ObjectId, ref: 'Category', default: null },
   status:      { type: String, enum: ['active', 'blacklisted', 'accepted'], default: 'active' },
   createdBy:   { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   createdAt:   { type: Date, default: Date.now },

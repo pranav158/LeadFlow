@@ -103,7 +103,15 @@
       <div class="content-view active" id="view-leads">
         <div class="content-header">
           <div class="content-title-row">
-            <h2 id="content-title">Leads</h2>
+            <div class="content-title-left">
+              <h2 id="content-title">Leads</h2>
+              <button class="btn btn-sm btn-ghost" id="manage-categories-btn" title="Manage Categories">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                </svg>
+                <span>Categories</span>
+              </button>
+            </div>
             <button class="btn btn-primary" id="add-lead-btn">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"/>
@@ -124,6 +132,9 @@
         <div class="leads-list" id="leads-list">
           <!-- Leads rendered here by JS -->
         </div>
+
+        <!-- Leads Pagination -->
+        <div class="leads-pagination" id="leads-pagination"></div>
 
         <!-- Loading -->
         <div class="loading-state" id="loading-state">
@@ -196,6 +207,13 @@
           <label for="lead-country">Country</label>
           <input type="text" id="lead-country" placeholder="e.g. Canada">
         </div>
+        <div class="form-group">
+          <label for="lead-category">Category</label>
+          <select id="lead-category" class="form-select">
+            <option value="">Uncategorized</option>
+            <!-- populated dynamically -->
+          </select>
+        </div>
         <button type="submit" class="btn btn-primary btn-full" id="submit-lead-btn">Create Lead</button>
       </form>
     </div>
@@ -235,12 +253,19 @@
           <label for="edit-country">Country</label>
           <input type="text" id="edit-country">
         </div>
+        <div class="form-group">
+          <label for="edit-category">Category</label>
+          <select id="edit-category" class="form-select">
+            <option value="">Uncategorized</option>
+            <!-- populated dynamically -->
+          </select>
+        </div>
         <button type="submit" class="btn btn-primary btn-full" id="submit-edit-btn">Save Changes</button>
       </form>
     </div>
   </div>
 
-  <!-- ─── Confirm Delete Modal ─────────────────────────────── -->
+  <!-- ─── Confirm Delete Lead Modal ───────────────────────── -->
   <div class="modal-overlay hidden" id="modal-delete">
     <div class="modal-card modal-sm">
       <div class="modal-header">
@@ -256,6 +281,62 @@
       <div class="modal-actions">
         <button class="btn btn-ghost" id="delete-cancel-btn">Cancel</button>
         <button class="btn btn-danger" id="delete-confirm-btn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Manage Categories Modal ─────────────────────────── -->
+  <div class="modal-overlay hidden" id="modal-categories">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Manage Categories</h3>
+        <button class="modal-close" id="modal-categories-close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="categories-manager-list" id="categories-manager-list">
+        <!-- rendered by JS -->
+      </div>
+      <div class="category-add-row">
+        <input type="text" id="new-category-name" class="category-name-input" placeholder="New category name..." maxlength="100">
+        <input type="color" id="new-category-color" class="category-color-input" value="#6366f1" title="Category color">
+        <button class="btn btn-primary btn-sm" id="add-category-btn">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Delete Category Modal ───────────────────────────── -->
+  <div class="modal-overlay hidden" id="modal-delete-category">
+    <div class="modal-card modal-sm modal-warning">
+      <div class="modal-header">
+        <div class="modal-warning-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <h3>Delete Category</h3>
+        </div>
+        <button class="modal-close" id="modal-delete-category-close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <p class="modal-body-text">
+        Deleting <strong id="delete-category-name"></strong> will move its leads to <strong>Uncategorized</strong>.
+      </p>
+      <div class="modal-actions modal-actions-stacked">
+        <button class="btn btn-ghost" id="delete-category-cancel-btn">Cancel</button>
+        <button class="btn btn-primary" id="delete-category-confirm-btn">Delete &amp; Keep Leads</button>
+        <button class="btn btn-danger btn-cooldown" id="delete-category-with-leads-btn" disabled>
+          <span class="btn-cooldown-text">Delete Category &amp; All Leads</span>
+          <span class="btn-cooldown-timer"></span>
+        </button>
       </div>
     </div>
   </div>
