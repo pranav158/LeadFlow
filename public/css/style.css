@@ -590,11 +590,8 @@ input { font-family: inherit; }
 }
 .category-group.collapsed .category-group-chevron { transform: rotate(-90deg); }
 .category-group-body {
+  max-height: 0; overflow: hidden; opacity: 0;
   transition: max-height 0.35s ease, opacity 0.25s ease;
-  overflow: hidden;
-}
-.category-group.collapsed .category-group-body {
-  max-height: 0 !important; opacity: 0;
 }
 .category-group-body-inner {
   padding: 4px 8px 8px; display: flex; flex-direction: column; gap: 6px;

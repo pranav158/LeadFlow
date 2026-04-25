@@ -316,15 +316,36 @@
       // Category header click to collapse/expand
       const body = groupEl.querySelector('.category-group-body');
       if (isExpanded) {
-        requestAnimationFrame(() => { body.style.maxHeight = body.scrollHeight + 'px'; });
+        requestAnimationFrame(() => {
+          body.style.maxHeight = 'none';
+          body.style.overflow = 'visible';
+          body.style.opacity = '1';
+        });
       }
       groupEl.querySelector('.category-group-header').addEventListener('click', () => {
-        groupEl.classList.toggle('collapsed');
-        if (groupEl.classList.contains('collapsed')) {
+        if (!groupEl.classList.contains('collapsed')) {
+          // Collapse — set explicit height first since it may be 'none'
+          body.style.overflow = 'hidden';
+          body.style.maxHeight = body.scrollHeight + 'px';
+          body.offsetHeight; // force reflow
           body.style.maxHeight = '0px';
+          body.style.opacity = '0';
+          groupEl.classList.add('collapsed');
           expandedCategories.delete(group.id);
         } else {
+          // Expand
+          groupEl.classList.remove('collapsed');
+          body.style.overflow = 'hidden';
+          body.style.opacity = '1';
           body.style.maxHeight = body.scrollHeight + 'px';
+          body.addEventListener('transitionend', function handler(e) {
+            if (e.propertyName !== 'max-height') return;
+            if (!groupEl.classList.contains('collapsed')) {
+              body.style.maxHeight = 'none';
+              body.style.overflow = 'visible';
+            }
+            body.removeEventListener('transitionend', handler);
+          });
           expandedCategories.add(group.id);
         }
       });
@@ -490,17 +511,34 @@
     const body = $(`#body-${id}`);
 
     if (card.classList.contains('expanded')) {
+      // Collapse — need explicit height first since it may be 'none'
+      body.style.overflow = 'hidden';
+      body.style.maxHeight = body.scrollHeight + 'px';
+      body.offsetHeight; // force reflow
       body.style.maxHeight = '0px';
       card.classList.remove('expanded');
     } else {
       // Collapse others
       $$('.lead-card.expanded').forEach(c => {
         c.classList.remove('expanded');
-        c.querySelector('.lead-body').style.maxHeight = '0px';
+        const otherBody = c.querySelector('.lead-body');
+        otherBody.style.overflow = 'hidden';
+        otherBody.style.maxHeight = otherBody.scrollHeight + 'px';
+        otherBody.offsetHeight;
+        otherBody.style.maxHeight = '0px';
       });
 
       card.classList.add('expanded');
       body.style.maxHeight = body.scrollHeight + 'px';
+      // After transition, remove max-height constraint so tall content isn't clipped
+      body.addEventListener('transitionend', function handler(e) {
+        if (e.propertyName !== 'max-height') return;
+        if (card.classList.contains('expanded')) {
+          body.style.maxHeight = 'none';
+          body.style.overflow = 'visible';
+        }
+        body.removeEventListener('transitionend', handler);
+      });
       loadNotes(id);
     }
   }
@@ -535,9 +573,12 @@
       </div>
     `).join('');
 
-    // Recalculate accordion height
+    // Recalculate accordion height — just remove constraint since card is already expanded
     const body = $(`#body-${leadId}`);
-    if (body) body.style.maxHeight = body.scrollHeight + 'px';
+    if (body) {
+      body.style.maxHeight = 'none';
+      body.style.overflow = 'visible';
+    }
   }
 
   // ─── Add Note ──────────────────────────────────────────────
