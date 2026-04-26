@@ -173,4 +173,4 @@ server {
 
 ## 📄 License
 
-[MIT]
+[MIT](LICENSE)
