@@ -41,6 +41,12 @@
 - **Backups:** `node-cron` scheduled encrypted dumps
 - **Frontend:** Vanilla HTML / CSS / JS — no build step, no framework
 
+## 🖼️ Preview
+
+<p align="center">
+  <img src="docs/screenshots/login.png" alt="Login Page" width="700" />
+</p>
+
 ---
 
 ## 🚀 Quick Start
